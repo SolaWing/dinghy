@@ -2,21 +2,24 @@ import os
 import lldb
 import shlex
 
+if __name__ == '__main__':
+    sys.path.insert(0, r'/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/Resources/Python')
+
 def connect_command(debugger, command, result, internal_dict):
     connect_url = command
     error = lldb.SBError()
-    process = lldb.target.ConnectRemote(lldb.target.GetDebugger().GetListener(), connect_url, None, error)
+    process = debugger.GetSelectedTarget().ConnectRemote(debugger.GetSelectedTarget().GetDebugger().GetListener(), connect_url, None, error)
 
-def set_remote_path(debugger, command, result, internal_dict):
+def set_remote_path(debugger: lldb.SBDebugger, command, result, internal_dict):
     device_app = command
     error = lldb.SBError()
-    lldb.target.modules[0].SetPlatformFileSpec(lldb.SBFileSpec(device_app))
+    debugger.GetSelectedTarget().modules[0].SetPlatformFileSpec(lldb.SBFileSpec(device_app))
 
 def start(debugger, command, result, internal_dict):
     error = lldb.SBError()
     info = lldb.SBLaunchInfo(shlex.split(command))
     info.SetEnvironmentEntries(["ENV_VAR_PLACEHOLDER"], True)
-    proc = lldb.target.Launch(info, error)
+    proc = debugger.GetSelectedTarget().Launch(info, error)
     lockedstr = ': Locked'
     if proc.GetState() != lldb.eStateExited:
         print("process left in lldb state: %s"%(debugger.StateAsCString(proc.GetState())))
